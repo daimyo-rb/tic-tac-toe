@@ -1,3 +1,54 @@
-h1 {
-    color: red;
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.game-header {
+    border: 2px solid purple;
+    display: flex;
+    align-items: center;
+}
+.game-header > p {
+    font-size: 16px;
+}
+.game-header > button {
+    padding: 10px;
+}
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    border: 2px solid yellow;
+}
+.cell {
+    aspect-ratio: 1 / 1;
+    font-size: 18px;
+    border: none;
+}
+.cell:nth-child(3n + 2){
+    border-left: 2px solid black;
+    border-right: 2px solid black;
+}
+.cell:nth-child(4),
+.cell:nth-child(5),
+.cell:nth-child(6) {
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+.empty {
+    background-color: rgb(194, 194, 194);
+}
+
+
+.game-footer {
+    border: 2px solid green;
+    display: flex;
+    gap: 10px;
+}
+.game-footer > p {
+    font-size: 12px;
+}
+.replace-name-input {
+    width: 50px;
 }

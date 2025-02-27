@@ -42,11 +42,25 @@ const gameboardObj = (() => {
     }
     return {getAllValues, getValueAtIndex, setValueAtIndex, checkIfIndexUsed, anyMovesRemaining, resetGameboard, prettyPrintGameboard, printHelperGameboard};
 })();
-const gamePlayer = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 1', playerTwoSymbol='o', playerTwoName='Player 2') => {
+const gamePlayerObj = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 1', playerTwoSymbol='o', playerTwoName='Player 2') => {
     const player1 = createPlayer(playerOneSymbol, playerOneName);
     const player2 = createPlayer(playerTwoSymbol, playerTwoName);
     let isPlayer1Turn = true;
     let isGameOver = false;
+    let displayString = '';
+    const getPlayerName = (player) => {
+        return player.name;
+    };
+    const setPlayerName = (player, name) => {
+        player.name = name;
+    };
+    const getDisplayString = () => {
+        return displayString;
+    };
+    const setDisplayString = (newString) => {
+        displayString = newString;
+        // console.log(displayString);  
+    };
     const swapWhosTurnIsIt = () => {
         isPlayer1Turn = !isPlayer1Turn;
     };
@@ -96,21 +110,25 @@ const gamePlayer = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 1',
     }
     const displayWhosMoveInConsole = () => {
         let activePlayer = whosTurnIsIt();
-        console.log(`${activePlayer.name}, it's your turn! (${activePlayer.symbol})`);
+        displayString = `${activePlayer.name}, it's your turn! (${activePlayer.symbol})`
+        console.log(displayString);
     }
     const handleMove = (index) => {
         if (isGameOver) {
-            console.log('game over: reset to play again');
+            displayString = 'game over: reset to play again';
+            console.log(displayString);
             return;
         }
         let activePlayer = whosTurnIsIt();
         if (!validateMove(index)) return; // validate move
         gameboard.setValueAtIndex(index, activePlayer.symbol); // make move
         if (checkPlayerWins(activePlayer)) { // check victory
-            console.log(`${activePlayer.name} wins!`);
+            displayString = `${activePlayer.name} wins!`;
+            console.log(displayString);
             isGameOver = true;
         } else if (checkTie()) { // check tie
-            console.log("no remaining moves. It's a Tie!");
+            displayString = "no remaining moves. It's a Tie!"
+            console.log(displayString);
             isGameOver = true;
         }
         renderGameboard();
@@ -119,11 +137,150 @@ const gamePlayer = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 1',
             displayWhosMoveInConsole();
         }   
     }
-    return {gameboard, handleMove, resetGame, renderGameboard, displayWhosMoveInConsole};
+    renderGameboard();
+    displayWhosMoveInConsole();
+    
+    return {gameboard, handleMove, resetGame, renderGameboard, displayWhosMoveInConsole, getDisplayString, setDisplayString, getPlayerName, setPlayerName, player1, player2};
 })(gameboardObj);
 
-gamePlayer.renderGameboard();
-gamePlayer.displayWhosMoveInConsole();
+const screenController = ((gamePlayer) => {
+    const gameDiv = document.getElementById('game-container');
+    const gameboard = gamePlayer.gameboard;
+    const player1 = gamePlayer.player1;
+    const player2 = gamePlayer.player2;
+    const logDisplayString = () => {
+        console.log(gamePlayer.displayString);
+    };
+    const isCellEmpty = (index) => {
+        return (gameboard.checkIfIndexUsed(index)) ? false : true;
+    };
+    const createCellFromIndex = (index) => {
+        let value = gamePlayer.gameboard.getValueAtIndex(index);
+        let cell = document.createElement('button');
+        cell.classList.add('cell');
+        cell.dataset.index = index;
+        if (isCellEmpty(index)){
+            cell.innerText = ''
+            cell.classList.add('empty');
+        } else if (value == player1.symbol) {
+            cell.innerText = `${value}`;
+            cell.classList.add('player1')
+        } else if (value == player2.symbol) {
+            cell.innerText = `${value}`;
+            cell.classList.add('player2')
+        }
+        return cell;
+    };
+    const displayHeader = () => {
+        let header = document.createElement('div');
+        header.classList.add('game-header');
+        let display = document.createElement('p');
+        // console.log(gamePlayer.displayString);
+        display.innerText = gamePlayer.getDisplayString();
+        let resetGameBtn = document.createElement('button');
+        resetGameBtn.classList.add('reset-btn');
+        resetGameBtn.innerText = 'New Game?';
+        header.appendChild(display);
+        header.appendChild(resetGameBtn);
+        gameDiv.appendChild(header);
+    };
+    const displayBoard = () => {
+        let gameGrid = document.createElement('div');
+        gameGrid.classList.add('game-grid');
+        gameboard.getAllValues().forEach((value, index) =>{
+            // console.log({value, index});
+            let tempCell = createCellFromIndex(index);
+            gameGrid.appendChild(tempCell);
+        });
+        gameDiv.appendChild(gameGrid);
+    };
+    const displayFooter = () => {
+        let footerDiv = document.createElement('div');
+        footerDiv.classList.add('game-footer');
+        [player1, player2].forEach( (player, index) => {
+            let playerContainer = document.createElement('div');
+            let playerNameElem = document.createElement('p');
+            playerNameElem.innerText = `${gamePlayer.getPlayerName(player)}`;
+            playerNameElem.dataset.playerId = index;
+            let playerSymbolElem = document.createElement('p');
+            playerSymbolElem.innerText = `(${player.symbol})`;           
+            playerContainer.appendChild(playerNameElem);
+            playerContainer.appendChild(playerSymbolElem);
+            footerDiv.appendChild(playerContainer);
+        });
+        gameDiv.appendChild(footerDiv);
+    };
+    const updateScreen = () => {
+        gameDiv.innerText = "";
+        displayHeader();
+        displayBoard();
+        displayFooter();
+    };
+    function clickHandlerCell(e) {
+        // console.log(e.target);
+        const selectedCellIndex = e.target.dataset.index;
+        if (!selectedCellIndex) return;
+        if (e.target.classList.contains('player1')) return;
+        if (e.target.classList.contains('player2')) return;
+        // at this point click was on open cell; handle move
+        gamePlayer.handleMove(selectedCellIndex);
+        updateScreen();
+    }
+    function clickHandlerReset(e) {
+        if (e.target.classList.contains('reset-btn')){
+            gamePlayer.resetGame();
+        }
+        updateScreen();
+    }
+    function updatePlayerName(newPlayerName, player) {
+        gamePlayer.setPlayerName(player, newPlayerName);
+    }
+    function updateDisplayTextOnNewPlayerName(oldPlayerName, newPlayerName){
+        let displayText = gamePlayer.getDisplayString();
+        if (displayText.includes(oldPlayerName)) {
+            let newDisplayString = displayText.replace(oldPlayerName, newPlayerName);
+            gamePlayer.setDisplayString(newDisplayString);    
+        }
+    }
+    function handleInputNewPlayerName(inputValue, player) {
+        let oldPlayerName = gamePlayer.getPlayerName(player);
+        let newPlayerName = inputValue;
+        updatePlayerName(newPlayerName, player);
+        updateDisplayTextOnNewPlayerName(oldPlayerName,newPlayerName);
+        updateScreen();
+    }
+    function clickHandlerNameChange(e) {
+        const selectedPlayerId = e.target.dataset.playerId;
+        if (!selectedPlayerId) return;
+        let activePlayer = (selectedPlayerId == 0) ? player1 : player2;
+        let clickedPlayerNameTag = document.querySelector(`[data-player-id="${selectedPlayerId}"]`);
+        const currentContent = clickedPlayerNameTag.textContent;
+        const inputTag = document.createElement('input');
+        inputTag.type = 'text';
+        inputTag.value = currentContent;
+        inputTag.classList.add('replace-name-input');
+        clickedPlayerNameTag.replaceWith(inputTag);
+        inputTag.focus();
+        inputTag.addEventListener('blur', () => {
+            handleInputNewPlayerName(inputTag.value, activePlayer);
+        });
+        inputTag.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                handleInputNewPlayerName(inputTag.value, activePlayer);
+            }
+        });
+    }
+    gameDiv.addEventListener('click',clickHandlerCell);
+    gameDiv.addEventListener('click',clickHandlerReset);
+    gameDiv.addEventListener('click',clickHandlerNameChange);
+    return {displayBoard, logDisplayString, updateScreen};
+
+})(gamePlayerObj);
+
+screenController.updateScreen();
+
+// gamePlayerObj.renderGameboard();
+// gamePlayerObj.displayWhosMoveInConsole();
 
 // let player1 = createPlayer('x', 'Player 1');
 // let player2 = createPlayer('o', 'Player 2');
