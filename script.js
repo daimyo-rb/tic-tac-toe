@@ -15,12 +15,12 @@ const gameboardObj = (() => {
         return gameboard[index] = value;
     };
     const anyMovesRemaining = () => {
-        for (let i = 0; i < gameboard.gameboardLength; i++){
-            if (gameboard.getValueAtIndex(i) == gameboard.fillValue){
-                return false;
+        for (let i = 0; i < gameboardLength; i++){            
+            if (getValueAtIndex(i) == fillValue){
+                return true;
             }
         }
-        return true;        
+        return false;
     };
     const checkIfIndexUsed = (index) => {
         return (getValueAtIndex(index) == fillValue) ? false : true;
@@ -59,7 +59,6 @@ const gamePlayerObj = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 
     };
     const setDisplayString = (newString) => {
         displayString = newString;
-        // console.log(displayString);  
     };
     const swapWhosTurnIsIt = () => {
         isPlayer1Turn = !isPlayer1Turn;
@@ -68,7 +67,7 @@ const gamePlayerObj = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 
         return (isPlayer1Turn) ? player1 : player2;
     };
     const checkTie = () => {
-        return (gameboard.anyMovesRemaining) ? false : true;
+        return (gameboard.anyMovesRemaining()) ? false : true;
     };
     const checkTripleIndex = (index1, index2, index3, symbol) => {
         if (gameboard.getValueAtIndex(index1) == symbol && gameboard.getValueAtIndex(index2) == symbol && gameboard.getValueAtIndex(index3) == symbol){
@@ -139,7 +138,6 @@ const gamePlayerObj = ((gameboard, playerOneSymbol='x', playerOneName = 'Player 
     }
     renderGameboard();
     displayWhosMoveInConsole();
-    
     return {gameboard, handleMove, resetGame, renderGameboard, displayWhosMoveInConsole, getDisplayString, setDisplayString, getPlayerName, setPlayerName, player1, player2};
 })(gameboardObj);
 
@@ -153,6 +151,18 @@ const screenController = ((gamePlayer) => {
     };
     const isCellEmpty = (index) => {
         return (gameboard.checkIfIndexUsed(index)) ? false : true;
+    };
+    const displayHeader = () => {
+        let header = document.createElement('div');
+        header.classList.add('game-header');
+        let display = document.createElement('p');
+        display.innerText = gamePlayer.getDisplayString();
+        let resetGameBtn = document.createElement('button');
+        resetGameBtn.classList.add('reset-btn');
+        resetGameBtn.innerText = 'New Game?';
+        header.appendChild(display);
+        header.appendChild(resetGameBtn);
+        gameDiv.appendChild(header);
     };
     const createCellFromIndex = (index) => {
         let value = gamePlayer.gameboard.getValueAtIndex(index);
@@ -171,24 +181,10 @@ const screenController = ((gamePlayer) => {
         }
         return cell;
     };
-    const displayHeader = () => {
-        let header = document.createElement('div');
-        header.classList.add('game-header');
-        let display = document.createElement('p');
-        // console.log(gamePlayer.displayString);
-        display.innerText = gamePlayer.getDisplayString();
-        let resetGameBtn = document.createElement('button');
-        resetGameBtn.classList.add('reset-btn');
-        resetGameBtn.innerText = 'New Game?';
-        header.appendChild(display);
-        header.appendChild(resetGameBtn);
-        gameDiv.appendChild(header);
-    };
     const displayBoard = () => {
         let gameGrid = document.createElement('div');
         gameGrid.classList.add('game-grid');
         gameboard.getAllValues().forEach((value, index) =>{
-            // console.log({value, index});
             let tempCell = createCellFromIndex(index);
             gameGrid.appendChild(tempCell);
         });
@@ -199,6 +195,7 @@ const screenController = ((gamePlayer) => {
         footerDiv.classList.add('game-footer');
         [player1, player2].forEach( (player, index) => {
             let playerContainer = document.createElement('div');
+            playerContainer.classList.add('footer-player-container');
             let playerNameElem = document.createElement('p');
             playerNameElem.innerText = `${gamePlayer.getPlayerName(player)}`;
             playerNameElem.dataset.playerId = index;
@@ -217,12 +214,10 @@ const screenController = ((gamePlayer) => {
         displayFooter();
     };
     function clickHandlerCell(e) {
-        // console.log(e.target);
         const selectedCellIndex = e.target.dataset.index;
         if (!selectedCellIndex) return;
         if (e.target.classList.contains('player1')) return;
         if (e.target.classList.contains('player2')) return;
-        // at this point click was on open cell; handle move
         gamePlayer.handleMove(selectedCellIndex);
         updateScreen();
     }
@@ -278,9 +273,3 @@ const screenController = ((gamePlayer) => {
 })(gamePlayerObj);
 
 screenController.updateScreen();
-
-// gamePlayerObj.renderGameboard();
-// gamePlayerObj.displayWhosMoveInConsole();
-
-// let player1 = createPlayer('x', 'Player 1');
-// let player2 = createPlayer('o', 'Player 2');

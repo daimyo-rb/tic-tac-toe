@@ -1,29 +1,51 @@
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
-
+body {
+    width: 100vw;
+    height: 100vh;
+}
+.game-container-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 10px 20px;
+}
+#game-container {
+    width: 100%;
+    max-width: 800px;
+    display: grid;
+    justify-content: center;
+}
 .game-header {
-    border: 2px solid purple;
     display: flex;
     align-items: center;
+    gap: 50px;
 }
 .game-header > p {
-    font-size: 16px;
+    font-size: 18px;
 }
 .game-header > button {
-    padding: 10px;
+    padding: 5px;
+    border: none;
+    border-radius: 10px;
+    background-color: rgb(144, 255, 92);
+    font-weight: bold;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
 }
 .game-grid {
+    margin-top: 12px;
+    width: 100%;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 100px));
     grid-template-rows: repeat(3, 1fr);
     gap: 2px;
-    border: 2px solid yellow;
+    justify-content: center;
 }
 .cell {
     aspect-ratio: 1 / 1;
-    font-size: 18px;
+    font-size: clamp(18px, 5vw, 50px);
     border: none;
 }
 .cell:nth-child(3n + 2){
@@ -39,16 +61,18 @@
 .empty {
     background-color: rgb(194, 194, 194);
 }
-
-
 .game-footer {
-    border: 2px solid green;
+    margin-top: 10px;
     display: flex;
-    gap: 10px;
+    gap: 30px;
 }
-.game-footer > p {
-    font-size: 12px;
+.footer-player-container {
+    display: flex;
+    gap: 5px;
+}
+.footer-player-container > p {
+    font-size: 14px;
 }
 .replace-name-input {
-    width: 50px;
+    width: 70px;
 }
